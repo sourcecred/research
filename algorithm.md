@@ -2,6 +2,7 @@
 
 SourceCred is a system for assigning 'cred' to contributors, in proportion
 to the value they've contributed to the project.
+
 SourceCred does this by creating a 'Contribution Graph', a [graph]
 containing all of the contributions and contributors to a project, as well as how
 they are inter-related. It then assigns cred to every node in the graph,
@@ -45,8 +46,9 @@ strings. The graph does not store any metadata with nodes. Because addresses
 are unique, the addresses can be used as an index into other databases.
 
 ## Edges
-Every relationship between contributors or contributors is represented by an edge in the
-graph. For example, a GitHub pull request may have some of the following edges:
+Every relationship between contributions or contributors is represented by an
+edge in the graph. For example, a GitHub pull request may have some of the
+following edges:
 - an *authored by* edge, connecting it with a user that authored the pull
 - a *has child* edge, connecting it with its comments or reviews
 - a *has parent* edge, connecting it with the repository that contains it
@@ -98,7 +100,7 @@ starts with the prefix `["sourcecred", "github"]`.
 
 ## Node and Edge Types
 
-Nodes and edges partition into meaningful "types" or "kinds" which share common
+Nodes and edges organized into meaningful "types" or "kinds" which share common
 semantics. For example, some kinds of nodes include issues, pull requests, and
 user accounts; kinds of edges include authors, references, and merges.
 
@@ -128,7 +130,10 @@ allow arbitrarily customized weights that are modified by user provided
 
 Attribution is the process by which we assign a score ('cred') to every node in
 a contribution graph. It uses a PageRank-based algorithm, although in contrast
-to [canonical PageRank], there is no random teleportation vector.
+to [canonical PageRank], there is no random teleportation vector. (Due to the
+lack of a teleportation vector, it's possible that the chain is not ergodic,
+and that the algorithm will fail to converge. There's no particular reason we
+don't have a teleportation vector, and may choose to add one in the future.)
 
 [canonical PageRank]: http://ilpubs.stanford.edu:8090/422/1/1999-66.pdf
 
@@ -137,13 +142,15 @@ to [canonical PageRank], there is no random teleportation vector.
 We convert the contribution graph into a [Markov Chain]. For every node in the
 graph, we create a self-loop connection with a small 'synthetic loop weight'
 (usually 1E-3). This ensures that every node has at least some outbound
-connections (in lieu of a teleportation vector). We then add connections
-corresponding to edges in the graph. Specifically, for every edge, we add a
-connection from its `src` to `dst` with a weight `edge.toWeight * dst.weight`,
-and we create a connection from its `dst` to `src` with weight
-`edge.froWeight * src.weight`.
+connections (in lieu of a teleportation vector). Without such a loop, the Graph
+might not correspond to a valid Markov Chain.
 
-Finally, we normalize the weights so that the outbound conncetions for each
+We then add connections corresponding to edges in the graph. Specifically, for
+every edge, we add a connection from its `src` to `dst` with a weight
+`edge.toWeight * dst.weight`, and we create a connection from its `dst` to
+`src` with weight `edge.froWeight * src.weight`.
+
+Finally, we normalize the weights so that the outbound connections for each
 node sum to 1 (i.e. it's a valid Markov Chain).
 
 [Markov Chain]: https://brilliant.org/wiki/markov-chains/
