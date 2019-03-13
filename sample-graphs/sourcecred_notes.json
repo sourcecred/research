@@ -1,0 +1,192 @@
+[
+  {
+    "type": "sourcecred/graph",
+    "version": "0.4.0"
+  },
+  {
+    "edges": [
+      {
+        "address": [
+          "sourcecred",
+          "git",
+          "HAS_PARENT",
+          "2",
+          "COMMIT",
+          "8281fd6767603ad85da6e2c490842b3f91d2c4e5",
+          "2",
+          "COMMIT",
+          "52c2ae7aefc70868429e8f69753490275a9ba2ff"
+        ],
+        "dstIndex": 0,
+        "srcIndex": 1
+      },
+      {
+        "address": [
+          "sourcecred",
+          "github",
+          "AUTHORS",
+          "5",
+          "sourcecred",
+          "github",
+          "USERLIKE",
+          "USER",
+          "decentralion",
+          "4",
+          "sourcecred",
+          "git",
+          "COMMIT",
+          "52c2ae7aefc70868429e8f69753490275a9ba2ff"
+        ],
+        "dstIndex": 0,
+        "srcIndex": 5
+      },
+      {
+        "address": [
+          "sourcecred",
+          "github",
+          "AUTHORS",
+          "5",
+          "sourcecred",
+          "github",
+          "USERLIKE",
+          "USER",
+          "decentralion",
+          "4",
+          "sourcecred",
+          "git",
+          "COMMIT",
+          "8281fd6767603ad85da6e2c490842b3f91d2c4e5"
+        ],
+        "dstIndex": 1,
+        "srcIndex": 5
+      },
+      {
+        "address": [
+          "sourcecred",
+          "github",
+          "AUTHORS",
+          "5",
+          "sourcecred",
+          "github",
+          "USERLIKE",
+          "USER",
+          "decentralion",
+          "6",
+          "sourcecred",
+          "github",
+          "ISSUE",
+          "sourcecred",
+          "notes",
+          "1"
+        ],
+        "dstIndex": 2,
+        "srcIndex": 5
+      },
+      {
+        "address": [
+          "sourcecred",
+          "github",
+          "AUTHORS",
+          "5",
+          "sourcecred",
+          "github",
+          "USERLIKE",
+          "USER",
+          "mzargham",
+          "6",
+          "sourcecred",
+          "github",
+          "ISSUE",
+          "sourcecred",
+          "notes",
+          "2"
+        ],
+        "dstIndex": 3,
+        "srcIndex": 6
+      },
+      {
+        "address": [
+          "sourcecred",
+          "github",
+          "HAS_PARENT",
+          "6",
+          "sourcecred",
+          "github",
+          "ISSUE",
+          "sourcecred",
+          "notes",
+          "1"
+        ],
+        "dstIndex": 4,
+        "srcIndex": 2
+      },
+      {
+        "address": [
+          "sourcecred",
+          "github",
+          "HAS_PARENT",
+          "6",
+          "sourcecred",
+          "github",
+          "ISSUE",
+          "sourcecred",
+          "notes",
+          "2"
+        ],
+        "dstIndex": 4,
+        "srcIndex": 3
+      }
+    ],
+    "nodes": [
+      [
+        "sourcecred",
+        "git",
+        "COMMIT",
+        "52c2ae7aefc70868429e8f69753490275a9ba2ff"
+      ],
+      [
+        "sourcecred",
+        "git",
+        "COMMIT",
+        "8281fd6767603ad85da6e2c490842b3f91d2c4e5"
+      ],
+      [
+        "sourcecred",
+        "github",
+        "ISSUE",
+        "sourcecred",
+        "notes",
+        "1"
+      ],
+      [
+        "sourcecred",
+        "github",
+        "ISSUE",
+        "sourcecred",
+        "notes",
+        "2"
+      ],
+      [
+        "sourcecred",
+        "github",
+        "REPO",
+        "sourcecred",
+        "notes"
+      ],
+      [
+        "sourcecred",
+        "github",
+        "USERLIKE",
+        "USER",
+        "decentralion"
+      ],
+      [
+        "sourcecred",
+        "github",
+        "USERLIKE",
+        "USER",
+        "mzargham"
+      ]
+    ]
+  }
+]
