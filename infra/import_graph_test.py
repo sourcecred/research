@@ -5,62 +5,53 @@ from collections import Counter
 
 import import_graph
 
-
 class TestTypeMatching(unittest.TestCase):
     def test_node_type_matching(self):
         # Testing the basic functionality. Cases don't need to be exhaustive;
         # missing types will be caught during the whole-graph import tests.
-        example_issue = [
-            "sourcecred",
-            "github",
-            "ISSUE",
-            "sourcecred",
-            "sourcecred",
-            "34",
-        ]
+        example_issue = ["sourcecred", "github", "ISSUE", "sourcecred", "sourcecred", "34"]
         example_repo = ["sourcecred", "github", "REPO", "sourcecred", "sourcecred"]
         self.assertEqual(import_graph.node_type(example_issue), "github/issue")
         self.assertEqual(import_graph.node_type(example_repo), "github/repo")
         with (self.assertRaises(ValueError)):
-            import_graph.node_type(["non", "existent", "node"])
+            import_graph.node_type(["non","existent", "node"])
 
     def test_edge_type_matching(self):
         # Testing the basic functionality. Cases don't need to be exhaustive;
         # missing types will be caught during the whole-graph import tests.
-        example_has_parent = [
-            "sourcecred",
-            "github",
-            "HAS_PARENT",
-            "6",
-            "sourcecred",
-            "github",
-            "ISSUE",
-            "sourcecred",
-            "pm",
-            "1",
+        example_has_parent= [
+          "sourcecred",
+          "github",
+          "HAS_PARENT",
+          "6",
+          "sourcecred",
+          "github",
+          "ISSUE",
+          "sourcecred",
+          "pm",
+          "1"
         ]
 
-        example_authors = [
-            "sourcecred",
-            "github",
-            "AUTHORS",
-            "5",
-            "sourcecred",
-            "github",
-            "USERLIKE",
-            "USER",
-            "BrianLitwin",
-            "4",
-            "sourcecred",
-            "git",
-            "COMMIT",
-            "0cae9fa77c1d7d8b8fe3fe2d316a6782757862e4",
+        example_authors= [
+          "sourcecred",
+          "github",
+          "AUTHORS",
+          "5",
+          "sourcecred",
+          "github",
+          "USERLIKE",
+          "USER",
+          "BrianLitwin",
+          "4",
+          "sourcecred",
+          "git",
+          "COMMIT",
+          "0cae9fa77c1d7d8b8fe3fe2d316a6782757862e4"
         ]
         self.assertEqual(import_graph.edge_type(example_has_parent), "github/hasParent")
         self.assertEqual(import_graph.edge_type(example_authors), "github/authors")
         with (self.assertRaises(ValueError)):
-            import_graph.edge_type(["non", "existent", "edge"])
-
+            import_graph.edge_type(["non","existent", "edge"])
 
 def sample_graphs_directory():
     wd = os.path.abspath(os.path.dirname(__file__))
@@ -75,7 +66,7 @@ class TestImportGraph(unittest.TestCase):
 
         with open(sourcecred_sourcecred, "r") as f:
             sourcecred_graph_data = json.load(f)
-        graph = import_graph.json_to_graph(sourcecred_graph_data)
+        graph = import_graph.jsonToMultiDiGraph(sourcecred_graph_data)
 
         # Some sanity checks on the loaded graph, based on node type counts
         # We don't expect exact counts because the expectation is that these graphs are
@@ -124,7 +115,7 @@ class TestImportGraph(unittest.TestCase):
             with open(g, "r") as f:
                 data = json.load(f)
             # Just verify it doesn't throw an error.
-            import_graph.json_to_graph(data)
+            import_graph.jsonToMultiDiGraph(data)
 
 
 if __name__ == "__main__":
