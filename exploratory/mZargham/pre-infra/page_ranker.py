@@ -177,10 +177,10 @@ def pageRanker(g,
     #improve input verification for initial value
     #must be dict keyed to nodes
     #with non-negative floating point values summing to 1
-    for n in g.nodes:
-        if initial_value==None:
-            initial_value = seed
-        
+    if initial_value==None:
+        initial_value = seed
+
+    for n in g.nodes:    
         g.nodes[n]['score'] = initial_value[n]    
     
     g = wt_heuristic(g,
