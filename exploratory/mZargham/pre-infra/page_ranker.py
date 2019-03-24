@@ -201,7 +201,7 @@ def pageRanker(g,
     
     
     #result in numpy array format
-    pr= np.array(list(x_dict[K].values()))
+    pr= np.array([g.nodes[n]['score'] for n in range(len(g.nodes))])
     
     #trajectory in pandas dataframe format
     df = pd.DataFrame(x_dict).T
