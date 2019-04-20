@@ -1,83 +1,80 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 17 13:00:33 2019
-
-@author: Zargham
-"""
+'''
+This Module provides functions for generating simple networks
+'''
 import networkx as nx
 
 
-def lineGraphGen(N, bidir=False, nodeTypeName="vanilla", edgeTypeName="vanilla"):
+#add function to make bidir
 
-    line = nx.path_graph(N, create_using=nx.MultiDiGraph)
-    if not (bidir):
-        G = line
-    else:
-        edges = line.edges
-        G = nx.MultiDiGraph()
+#add function to reverse direction
+
+def line_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_name="vanilla"):
+
+    graph = nx.path_graph(num_nodes, create_using=nx.MultiDiGraph)
+    if bidir:
+        edges = graph.copy().edges
         for e in edges:
-            G.add_edge(e[0], e[1])
-            G.add_edge(e[1], e[0])
+            graph.add_edge(e[1], e[0])
 
-    nx.set_node_attributes(G, nodeTypeName, "type")
-    nx.set_edge_attributes(G, edgeTypeName, "type")
+    nx.set_node_attributes(graph, node_type_name, "type")
+    nx.set_edge_attributes(graph, edge_type_name, "type")
 
-    return G
+    return graph
 
 
-def starGraphGen(N, kind="sink", nodeTypeName="vanilla", edgeTypeName="vanilla"):
+def star_graph_gen(num_nodes, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
 
-    star = nx.star_graph(N)
-    G = nx.MultiDiGraph()
+    star = nx.star_graph(num_nodes)
+    graph = nx.MultiDiGraph()
 
     for e in star.edges:
         if (kind == "source") or (kind == "bidir"):
-            G.add_edge(e[0], e[1])
+            graph.add_edge(e[0], e[1])
         if (kind == "sink") or (kind == "bidir"):
-            G.add_edge(e[1], e[0])
+            graph.add_edge(e[1], e[0])
 
-    nx.set_node_attributes(G, nodeTypeName, "type")
-    nx.set_edge_attributes(G, edgeTypeName, "type")
+    nx.set_node_attributes(graph, node_type_name, "type")
+    nx.set_edge_attributes(graph, edge_type_name, "type")
 
-    return G
+    return graph
 
 
-def circleGraphGen(N, bidir=False, nodeTypeName="vanilla", edgeTypeName="vanilla"):
+def circle_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_name="vanilla"):
 
-    circle = nx.cycle_graph(N, create_using=nx.MultiDiGraph)
+    circle = nx.cycle_graph(num_nodes, create_using=nx.MultiDiGraph)
     if not (bidir):
-        G = circle
+        graph = circle
     else:
         edges = circle.edges
-        G = nx.MultiDiGraph()
+        graph = nx.MultiDiGraph()
         for e in edges:
-            G.add_edge(e[0], e[1])
-            G.add_edge(e[1], e[0])
+            graph.add_edge(e[0], e[1])
+            graph.add_edge(e[1], e[0])
 
-    nx.set_node_attributes(G, nodeTypeName, "type")
-    nx.set_edge_attributes(G, edgeTypeName, "type")
+    nx.set_node_attributes(graph, node_type_name, "type")
+    nx.set_edge_attributes(graph, edge_type_name, "type")
 
-    return G
+    return graph
 
 
-def treeGraphGen(r, h, kind="sink", nodeTypeName="vanilla", edgeTypeName="vanilla"):
+def tree_graph_gen(r, h, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
 
     tree = nx.balanced_tree(r, h, create_using=nx.MultiDiGraph)
 
     if kind == "source":
-        G = tree
+        graph = tree
     elif kind == "sink":
-        G = nx.MultiDiGraph()
+        graph = nx.MultiDiGraph()
         for e in tree.edges:
-            G.add_edge(e[1], e[0])
+            graph.add_edge(e[1], e[0])
     elif kind == "bidir":
-        G = nx.MultiDiGraph()
+        graph = nx.MultiDiGraph()
         for e in tree.edges:
-            G.add_edge(e[1], e[0])
-            G.add_edge(e[0], e[1])
+            graph.add_edge(e[1], e[0])
+            graph.add_edge(e[0], e[1])
 
-    nx.set_node_attributes(G, nodeTypeName, "type")
-    nx.set_edge_attributes(G, edgeTypeName, "type")
+    nx.set_node_attributes(graph, node_type_name, "type")
+    nx.set_edge_attributes(graph, edge_type_name, "type")
 
-    return G
+    return graph
