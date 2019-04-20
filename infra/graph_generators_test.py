@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Mar 20 17:17:54 2019
+'''
+This Module provides unit tests for functions for generating simple networks
+'''
 
-@author: Zargham
-"""
 import networkx as nx
 import unittest
 from graph_generators import lineGraphGen, starGraphGen, treeGraphGen
