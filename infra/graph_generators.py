@@ -28,26 +28,43 @@ def reverse_dir(graph):
     
     return graph
 
-def set_types(graph, edge_types="vanilla", node_types="vanilla"):
+def set_types(graph, node_types="vanilla", edge_types="vanilla"):
     """ maps edge types and node types onto graph"""
     if type(node_types)== dict:
         for n in graph.nodes:
-            graph.nodes[n]['type']=node_types[n]
-    elif node_types == str:
+            try: 
+                graph.nodes[n]['type']=node_types[n]
+            except:
+                raise ValueError('if node_types is dictionary, must be keyed to the nodes of the graph, '+str(node_types)+' provided')
+    elif type(node_types) == str:
             nx.set_node_attributes(graph, node_types, "type")
+    else:
+        raise ValueError('node_types must be string or dictionary keyed to the nodes of the graph, '+str(node_types)+' provided')
+    
     
     if type(edge_types)== dict:
         for e in graph.edges:
-            graph.edges[e]['type']=edge_types[e]
-    elif edge_types == str:
+            try:
+                graph.edges[e]['type']=edge_types[e]
+            except:
+                raise ValueError('edges_types must be string or dictionary keyed to the nodes of the graph, '+str(edge_types)+' provided')
+    elif type(edge_types) == str:
         nx.set_edge_attributes(graph, edge_types, "type")
+    else:
+        raise ValueError('if edges_types is dictionary, must keyed to the edges of the graph, '+str(edge_types)+' provided')
         
         return graph
 
-#todo add error handling
-
 def line_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_name="vanilla"):
     """returns a line graph of length num_nodes"""
+    
+    if not(type(num_nodes)==int)or(num_nodes<1):
+        raise ValueError('num_nodes must be positive integer, '+str(num_nodes)+' provided')
+        
+    if not(type(bidir)==bool):
+        raise ValueError('bidir must be boolean, '+str(bidir)+' provided')
+        
+    
     graph = nx.path_graph(num_nodes, create_using=nx.MultiDiGraph)
     if bidir:
         graph = make_bidir(graph)
@@ -59,6 +76,13 @@ def line_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_n
 
 def star_graph_gen(num_nodes, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
     """returns a star graph of length num_nodes"""
+    
+    if not(type(num_nodes)==int)or(num_nodes<1):
+        raise ValueError('num_nodes must be positive integer, '+str(num_nodes)+' provided')
+        
+    if not(kind in ["sink", "source", "bidir"]):
+        raise ValueError('kind must be "sink", "source" or "bidir", '+str(kind)+' provided')
+    
     graph = nx.MultiDiGraph(nx.star_graph(num_nodes-1))
 
     for n in range(1,num_nodes):
@@ -74,6 +98,13 @@ def star_graph_gen(num_nodes, kind="sink", node_type_name="vanilla", edge_type_n
 
 def circle_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_name="vanilla"):
     """returns a cycle graph of length num_nodes"""
+    
+    if not(type(num_nodes)==int)or(num_nodes<1):
+        raise ValueError('num_nodes must be positive integer, '+str(num_nodes)+' provided')
+        
+    if not(type(bidir)==bool):
+        raise ValueError('bidir must be boolean, '+str(bidir)+' provided')
+        
     graph = nx.cycle_graph(num_nodes, create_using=nx.MultiDiGraph)
     
     if bidir:
@@ -86,6 +117,16 @@ def circle_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type
 
 def tree_graph_gen(rate, height, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
     """returns a tree graph of depth height and splitting rate rate"""
+    
+    if not(type(rate)==int)or(rate<1):
+        raise ValueError('rate must be positive integer, '+str(rate)+' provided')
+        
+    if not(type(height)==int)or(height<1):
+        raise ValueError('height must be positive integer, '+str(height)+' provided')
+    
+    if not(kind in ["sink", "source", "bidir"]):
+        raise ValueError('kind must be "sink", "source" or "bidir", '+str(kind)+' provided')
+        
     graph = nx.balanced_tree(rate, height, create_using=nx.MultiDiGraph)
     
     if kind == "sink":
