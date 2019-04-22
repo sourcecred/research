@@ -41,14 +41,14 @@ def line_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_n
 
 def star_graph_gen(num_nodes, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
 
-    star = nx.star_graph(num_nodes)
-    graph = nx.MultiDiGraph()
+    
+    graph = nx.MultiDiGraph(nx.star_graph(num_nodes-1))
 
-    for e in star.edges:
-        if (kind == "source") or (kind == "bidir"):
-            graph.add_edge(e[0], e[1])
-        if (kind == "sink") or (kind == "bidir"):
-            graph.add_edge(e[1], e[0])
+    for n in range(1,num_nodes):
+        if kind == "sink":
+            graph.remove_edge(0,n)
+        elif kind == "source":
+            graph.remove_edge(n,0)
 
     nx.set_node_attributes(graph, node_type_name, "type")
     nx.set_edge_attributes(graph, edge_type_name, "type")
@@ -58,37 +58,25 @@ def star_graph_gen(num_nodes, kind="sink", node_type_name="vanilla", edge_type_n
 
 def circle_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_name="vanilla"):
 
-    circle = nx.cycle_graph(num_nodes, create_using=nx.MultiDiGraph)
-    if not (bidir):
-        graph = circle
-    else:
-        edges = circle.edges
-        graph = nx.MultiDiGraph()
-        for e in edges:
-            graph.add_edge(e[0], e[1])
-            graph.add_edge(e[1], e[0])
-
+    graph = nx.cycle_graph(num_nodes, create_using=nx.MultiDiGraph)
+    
+    if bidir:
+        graph = make_bidir(graph)
+    
     nx.set_node_attributes(graph, node_type_name, "type")
     nx.set_edge_attributes(graph, edge_type_name, "type")
 
     return graph
 
 
-def tree_graph_gen(r, h, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
+def tree_graph_gen(rate, height, kind="sink", node_type_name="vanilla", edge_type_name="vanilla"):
 
-    tree = nx.balanced_tree(r, h, create_using=nx.MultiDiGraph)
-
-    if kind == "source":
-        graph = tree
-    elif kind == "sink":
-        graph = nx.MultiDiGraph()
-        for e in tree.edges:
-            graph.add_edge(e[1], e[0])
+    graph = nx.balanced_tree(rate, height, create_using=nx.MultiDiGraph)
+    
+    if kind == "sink":
+        graph = reverse_dir(graph)
     elif kind == "bidir":
-        graph = nx.MultiDiGraph()
-        for e in tree.edges:
-            graph.add_edge(e[1], e[0])
-            graph.add_edge(e[0], e[1])
+        graph = make_bidir(graph)
 
     nx.set_node_attributes(graph, node_type_name, "type")
     nx.set_edge_attributes(graph, edge_type_name, "type")
