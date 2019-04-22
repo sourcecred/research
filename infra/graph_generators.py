@@ -5,17 +5,33 @@ This Module provides functions for generating simple networks
 import networkx as nx
 
 
-#add function to make bidir
+#this function adds an edge with opposite direction for each edge present
+def make_bidir(graph):
+    edges = graph.copy().edges
+    for e in edges:
+        graph.add_edge(e[1], e[0])
+    
+    return graph
+    
 
-#add function to reverse direction
+#this function adds an edge with opposite direction for each edge present
+#and removed the original edge
+def reverse_dir(graph):
+    edges = graph.copy().edges
+    for e in edges:
+        graph.add_edge(e[1], e[0])
+        graph.remove_edge(e[0], e[1])
+    
+    return graph
+
+
+#todo add error handling
 
 def line_graph_gen(num_nodes, bidir=False, node_type_name="vanilla", edge_type_name="vanilla"):
 
     graph = nx.path_graph(num_nodes, create_using=nx.MultiDiGraph)
     if bidir:
-        edges = graph.copy().edges
-        for e in edges:
-            graph.add_edge(e[1], e[0])
+        graph = make_bidir(graph)
 
     nx.set_node_attributes(graph, node_type_name, "type")
     nx.set_edge_attributes(graph, edge_type_name, "type")
