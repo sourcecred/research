@@ -104,7 +104,7 @@ def star_graph_gen(
             "num_nodes must be positive integer, " + str(num_nodes) + " provided"
         )
 
-    if not (kind in ["sink", "source", "bidir"]):
+    if kind not in ("source", "sink", "bidir"):
         raise ValueError(
             'kind must be "sink", "source" or "bidir", ' + str(kind) + " provided"
         )
@@ -158,7 +158,7 @@ def tree_graph_gen(
             "height must be positive integer, " + str(height) + " provided"
         )
 
-    if not (kind in ["sink", "source", "bidir"]):
+    if kind not in ("source", "sink", "bidir"):
         raise ValueError(
             'kind must be "sink", "source" or "bidir", ' + str(kind) + " provided"
         )
