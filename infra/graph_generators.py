@@ -69,7 +69,7 @@ def set_types(graph, node_types="vanilla", edge_types="vanilla"):
             + " provided"
         )
 
-        return graph
+    return graph
 
 
 def line_graph_gen(
