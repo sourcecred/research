@@ -114,6 +114,7 @@ class graphNet {
 		this.nodeColor = d3.scaleOrdinal(d3.schemeCategory10);
 		this.edgeColor = d3.scaleOrdinal(d3.schemeCategory10);
 		// update chart
+		// this.addZoom();
 		this.update(this.data);
 	}
 	
@@ -135,6 +136,7 @@ class graphNet {
 		
 		// restart simulation with new data
 		// node data join
+		// TODO: add drag behavior
 		var node = that.node.selectAll(".node").data(nodes);
 
 		// node exit	
