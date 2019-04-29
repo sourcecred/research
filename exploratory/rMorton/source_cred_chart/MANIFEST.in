@@ -1,0 +1,2 @@
+recursive-include source_cred_chart/static *.*
+include source_cred_chart.json
