@@ -4,15 +4,12 @@ var version = require('./package.json').version;
 // Custom webpack rules are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
 var rules = [
-    { test: /\.css$/, use: ['style-loader', 'css-loader']}
-]
-
-var loaders = [
-    { test: /\.css$/, loader: "style-loader!css-loader" },
+	{ test: /\.css$/, loader: "style-loader!css-loader" },
     { test: /\.less$/, loader: "style-loader!css-loader!less-loader" },
     { test: /\.json$/, loader: 'json-loader' },
     { test: /\.js$/, loader: 'babel-loader', query: {presets: ['es2015', 'stage-0']}, exclude: /node_modules/ }
-];
+]
+
 module.exports = [
     {// Notebook extension
      //
@@ -25,7 +22,7 @@ module.exports = [
         entry: './lib/extension.js',
         output: {
             filename: 'extension.js',
-            path: path.resolve(__dirname, '..', 'source_cred_chart', 'static'),
+            path: path.resolve(__dirname, '..', 'pySourceCredChart', 'static'),
             libraryTarget: 'amd'
         }
     },
@@ -38,7 +35,7 @@ module.exports = [
         entry: './lib/index.js',
         output: {
             filename: 'index.js',
-            path: path.resolve(__dirname, '..', 'source_cred_chart', 'static'),
+            path: path.resolve(__dirname, '..', 'pySourceCredChart', 'static'),
             libraryTarget: 'amd'
         },
         devtool: 'source-map',
@@ -47,7 +44,7 @@ module.exports = [
         },
         externals: ['@jupyter-widgets/base']
     },
-    {// Embeddable source_cred_chart bundle
+    {// Embeddable pySourceCredChart bundle
      //
      // This bundle is generally almost identical to the notebook bundle
      // containing the custom widget views and models.
@@ -66,7 +63,7 @@ module.exports = [
             filename: 'index.js',
             path: path.resolve(__dirname, 'dist'),
             libraryTarget: 'amd',
-            publicPath: 'https://unpkg.com/source_cred_chart@' + version + '/dist/'
+            publicPath: 'https://unpkg.com/pySourceCredChart@' + version + '/dist/'
         },
         devtool: 'source-map',
         module: {

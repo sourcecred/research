@@ -22,7 +22,7 @@ log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
 
-LONG_DESCRIPTION = 'A Jupyter Widget Library for Source Cred Force Directed Chart'
+LONG_DESCRIPTION = 'A python library for Source Cred Charts'
 
 def js_prerelease(command, strict=False):
     """decorator for building minified js/css prior to another command"""
@@ -66,8 +66,8 @@ class NPM(Command):
     node_modules = os.path.join(node_root, 'node_modules')
 
     targets = [
-        os.path.join(here, 'source_cred_chart', 'static', 'extension.js'),
-        os.path.join(here, 'source_cred_chart', 'static', 'index.js')
+        os.path.join(here, 'pySourceCredChart', 'static', 'extension.js'),
+        os.path.join(here, 'pySourceCredChart', 'static', 'index.js')
     ]
 
     def initialize_options(self):
@@ -121,22 +121,22 @@ class NPM(Command):
         update_package_data(self.distribution)
 
 version_ns = {}
-with open(os.path.join(here, 'source_cred_chart', '_version.py')) as f:
+with open(os.path.join(here, 'pySourceCredChart', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 setup_args = {
-    'name': 'source_cred_chart',
+    'name': 'pySourceCredChart',
     'version': version_ns['__version__'],
-    'description': 'A Jupyter Widget Library for Source Cred Force Directed Chart',
+    'description': 'A python library for Source Cred Charts',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/source_cred_chart', [
-            'source_cred_chart/static/extension.js',
-            'source_cred_chart/static/index.js',
-            'source_cred_chart/static/index.js.map',
+        ('share/jupyter/nbextensions/pySourceCredChart', [
+            'pySourceCredChart/static/extension.js',
+            'pySourceCredChart/static/index.js',
+            'pySourceCredChart/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d' ,['source_cred_chart.json'])
+        ('etc/jupyter/nbconfig/notebook.d' ,['pySourceCredChart.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
@@ -150,9 +150,9 @@ setup_args = {
         'jsdeps': NPM,
     },
 
-    'author': 'Ryan',
-    'author_email': 'morton@myMA.us',
-    'url': 'https://github.com//source_cred_chart',
+    'author': 'Ryan Morton',
+    'author_email': 'morton@myma.us',
+    'url': 'https://github.com//pySourceCredChart',
     'keywords': [
         'ipython',
         'jupyter',

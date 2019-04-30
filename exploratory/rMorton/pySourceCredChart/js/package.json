@@ -1,12 +1,12 @@
 {
-  "name": "source_cred_chart",
+  "name": "pySourceCredChart",
   "version": "0.1.0",
-  "description": "A Jupyter Widget Library for Source Cred Force Directed Chart",
-  "author": "Ryan",
+  "description": "A python library for Source Cred Charts",
+  "author": "Ryan Morton",
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com//source_cred_chart.git"
+    "url": "https://github.com//pySourceCredChart.git"
   },
   "keywords": [
     "jupyter",
@@ -32,16 +32,14 @@
     "babel-preset-stage-0": "^6.24.1",
     "style-loader": "^0.18.2",
     "css-loader": "^0.28.4",
-    "webpack": "^3.5.5",
     "json-loader": "^0.5.4",
+    "webpack": "^3.5.5",
     "rimraf": "^2.6.1"
   },
   "dependencies": {
     "@jupyter-widgets/base": "^1.0.0",
-    "@jupyter-widgets/controls": "^1.0.0",
-    "@jupyter-widgets/jupyterlab-manager": "^0.28.0",
-    "lodash": "^4.17.4",
-    "d3": "^5.9.2"
+    "d3": "^5.9.2",
+    "lodash": "^4.17.4"
   },
   "jupyterlab": {
     "extension": "lib/labplugin"

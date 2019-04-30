@@ -6,7 +6,7 @@ build/
 node_modules/
 
 # Compiled javascript
-source_cred_chart/static/
+pySourceCredChart/static/
 
 # OS X
 .DS_Store
