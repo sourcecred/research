@@ -13,8 +13,41 @@ var sourceCredChartModel = widgets.DOMWidgetModel.extend({
 
 var sourceCredChartView = widgets.DOMWidgetView.extend({
 	render: function(){
+		var that = this;
 		/// set up chart space without data
 		this.chartContainer = d3.select(this.el);
+		
+		var message = new Promise(function(resolve, reject){
+			resolve(that.model.get('_model_msg'))
+		});
+		
+		message
+			.then(this.message_changed())
+			.catch(function(err){
+				console.log(err); 
+				});
+		
+		this.model.on('change:_model_msg', this.message_changed, this);
+		this.model.on('change:_model_data', this.data_changed, this);
+	},
+	
+	message_changed: function(){
+		this.el.msg = this.model.get('_model_msg');
+		this.draw(this.el.msg[0]);
+	},
+	
+	data_changed: function(){
+		this.el.data = this.model.get('_model_data');
+		this.update(this.el.data);
+	},
+	draw: function(opts){
+		console.log(opts);
+		this.data = opts.data;
+		this.scores = opts.scores;
+		this.mapping = opts.mapping;
+		this.options = opts.options;
+		console.log(this.data);
+		console.log(this.mapping);
 		
 		//preserve context for closures
 		var that = this;
@@ -55,67 +88,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.style('height', 'auto')
 			.style('background', 'none repeat scroll 0 0 #ffffff')
 	
-	this.model.on('change:_model_msg', this.message_changed, this);
-	this.model.on('change:_model_data', this.data_changed, this);
-	},
-	
-	message_changed: function(){
-		this.el.msg = this.model.get('_model_msg');
-		this.draw(this.el.msg[0]);
-	},
-	
-	data_changed: function(){
-		this.el.data = this.model.get('_model_data');
-		this.update(this.el.data);
-	},
-	draw: function(opts){
-		console.log(opts);
-		this.data = opts.data;
-		this.scores = opts.scores;
-		this.mapping = opts.mapping;
-		this.options = opts.options;
-		console.log(this.data);
-		console.log(this.mapping);
-		
-		//preserve context for closures
-		var that = this;
-		/*
-		// define dimensions
-		this.width = 800;
-		this.height = 400;
-		
-		// set up parent element and SVG
-		this.chartContainer.innerHTML = '';
-		this.svg = d3.select(this.chartContainer).append('svg');
-		this.svg.attr('width', this.width);
-		this.svg.attr('height', this.height);
-		this.chart = this.svg
-			.append("g")
-			.attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ")")
-			
-		// set up svg defs
-		this.chart.append("defs").append("marker")
-				.attr("id", "arrow")
-				.attr("viewBox", "0 -3 10 10")
-				.attr("refX", 18)
-				.attr("refY", 0)
-				.attr("markerWidth", 5)
-				.attr("markerHeight", 5)
-				.attr("orient", "auto")
-				.append("svg:path")
-				.attr("d", "M 0,-5 L 10 ,0 L 0,5");   
-		
-		//chart elements        
-		this.edge = this.chart.append("g");
-		this.node = this.chart.append("g");
-		this.tooltip = d3.select(this.element).append("div")
-			.attr("class", "toolTip")
-			.style('display', 'none')
-			.style('position', 'absolute')
-			.style('min-width' , '50px')
-			.style('height', 'auto')
-			.style('background', 'none repeat scroll 0 0 #ffffff')
-		*/
 		//initialize simulation
 		///define variables from data for simulation only
 		///data updates chart and restarts simulation later
