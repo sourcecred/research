@@ -5,28 +5,35 @@ This Module provides functions for generating simple networks
 import networkx as nx
 
 
-def make_bidir(graph):
-    """this function adds an edge with opposite direction for each edge present"""
-    edges = graph.copy().edges
-    for e in edges:
-        graph.add_edge(e[1], e[0])
-
-    return graph
-
-
-# this function adds an edge with opposite direction for each edge present
-# and removed the original edge
-def reverse_dir(graph):
+def bidirectional(graph):
     """
-    this function adds an edge with opposite direction for each edge present
-    and removed the original edge
-    """
-    edges = graph.copy().edges
-    for e in edges:
-        graph.add_edge(e[1], e[0])
-        graph.remove_edge(e[0], e[1])
+    Returns a bidirectional copy of the input graph.
 
-    return graph
+    For every edge in the input graph, the bidirectional graph
+    has a corresponding reversed edge.
+
+    Does not mutate the input graph.
+    """
+    output = nx.MultiDiGraph()
+    for e in graph.edges:
+        output.add_edge(e[0], e[1])
+        output.add_edge(e[1], e[0])
+    return output
+
+
+def reverse(graph):
+    """
+    Returns a reversed direction copy of the input graph.
+
+    For every edge in the input graph, there will be a reversed edge in the
+    resultant graph.
+
+    Does not mutate the input graph.
+    """
+    output = nx.MultiDiGraph()
+    for e in graph.edges:
+        output.add_edge(e[1], e[0])
+    return output
 
 
 def set_types(graph, node_types="vanilla", edge_types="vanilla"):
@@ -87,7 +94,7 @@ def line_graph_gen(
 
     graph = nx.path_graph(num_nodes, create_using=nx.MultiDiGraph)
     if bidir:
-        graph = make_bidir(graph)
+        graph = bidirectional(graph)
 
     graph = set_types(graph, edge_types=node_type_name, node_types=edge_type_name)
 
@@ -138,7 +145,7 @@ def circle_graph_gen(
     graph = nx.cycle_graph(num_nodes, create_using=nx.MultiDiGraph)
 
     if bidir:
-        graph = make_bidir(graph)
+        graph = bidirectional(graph)
 
     graph = set_types(graph, edge_types=node_type_name, node_types=edge_type_name)
 
@@ -166,9 +173,9 @@ def tree_graph_gen(
     graph = nx.balanced_tree(rate, height, create_using=nx.MultiDiGraph)
 
     if kind == "sink":
-        graph = reverse_dir(graph)
+        graph = reverse(graph)
     elif kind == "bidir":
-        graph = make_bidir(graph)
+        graph = bidirectional(graph)
 
     graph = set_types(graph, edge_types=node_type_name, node_types=edge_type_name)
 
