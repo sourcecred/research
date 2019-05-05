@@ -176,3 +176,7 @@ class Graph_Generators_Make_Bidir(unittest.TestCase):
         g = make_bidir(g)
 
         self.assertEqual(list(g.edges()), [(0, 1), (1, 2), (1, 0), (2, 1)])
+
+
+if __name__ == "__main__":
+    unittest.main()
