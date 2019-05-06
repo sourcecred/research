@@ -14,7 +14,7 @@ To install use pip:
 
 For a development installation (requires npm),
 
-    $ git clone https://github.com//sourcecred//research//infra/pySourceCredChart.git
+    $ git clone https://github.com//sourcecred//research//tree//rm-exploratory//exploratory//rMorton//pySourceCredChart.git
     $ cd pySourceCredChart
     $ pip install -e .
     $ jupyter nbextension install --py --sys-prefix pySourceCredChart
