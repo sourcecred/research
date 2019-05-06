@@ -1,3 +1,4 @@
+## scaffolding for the chart library from `cookiecutter`: https://github.com/jupyter-widgets/widget-cookiecutter
 from __future__ import print_function
 from setuptools import setup, find_packages, Command
 from setuptools.command.sdist import sdist
