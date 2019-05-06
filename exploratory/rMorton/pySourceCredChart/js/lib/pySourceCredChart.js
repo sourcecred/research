@@ -21,7 +21,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		
 		// define dimensions
 		this.width = 800;
-		this.height = 600;
+		this.height = 400;
 		
 		// set up parent element and SVG
 		this.chartContainer.innerHTML = '';
@@ -55,18 +55,12 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.style('height', 'auto')
 			.style('background', 'none repeat scroll 0 0 #ffffff')
 	
-	this.model.on('change:_model_msg', this.message_changed, this);
-	this.model.on('change:_model_data', this.data_changed, this);
+	this.model.on('change:_model_msg', this.value_changed, this);
 	},
 	
-	message_changed: function(){
+	value_changed: function(){
 		this.el.msg = this.model.get('_model_msg');
 		this.draw(this.el.msg[0]);
-	},
-	
-	data_changed: function(){
-		this.el.data = this.model.get('_model_data');
-		this.update(this.el.data);
 	},
 	draw: function(opts){
 		console.log(opts);
@@ -168,12 +162,9 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		}
 		timeIt();
 	},
-	update: function(newData){
-		console.log(newData);
+	update: function(data){
 		//preserve context for functions
 		const that = this;
-		
-		var data = newData.length == 1 ? newData[0] : newData;
     
 		//define variables from data
 		const links = data[this.mapping.edges];
