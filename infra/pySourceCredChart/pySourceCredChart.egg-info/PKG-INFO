@@ -1,0 +1,22 @@
+Metadata-Version: 1.1
+Name: pySourceCredChart
+Version: 0.1.0a0
+Summary: A python library for Source Cred Charts
+Home-page: https://github.com//pySourceCredChart
+Author: Ryan Morton
+Author-email: morton@myma.us
+License: UNKNOWN
+Description: A python library for Source Cred Charts
+Keywords: ipython,jupyter,widgets
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: IPython
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Multimedia :: Graphics
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
