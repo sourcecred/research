@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1554834200896.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "18|27|174|0|\n",
+    "hash" : "3466968790",
+    "id" : "37EAAA2C",
+    "lastKnownWriteTime" : 1554847995,
+    "last_content_update" : 1554847995531,
+    "path" : "~/GitHub/research/exploratory/rMorton/sc_eda_doc.Rmd",
+    "project_path" : "sc_eda_doc.Rmd",
+    "properties" : {
+        "cursorPosition" : "236,98",
+        "scrollLine" : "235",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
