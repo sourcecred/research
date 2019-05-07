@@ -1,0 +1,17 @@
+MANIFEST.in
+README.md
+pySourceCredChart.json
+setup.cfg
+setup.py
+pySourceCredChart/__init__.py
+pySourceCredChart/_version.py
+pySourceCredChart/pySourceCredChart.py
+pySourceCredChart.egg-info/PKG-INFO
+pySourceCredChart.egg-info/SOURCES.txt
+pySourceCredChart.egg-info/dependency_links.txt
+pySourceCredChart.egg-info/not-zip-safe
+pySourceCredChart.egg-info/requires.txt
+pySourceCredChart.egg-info/top_level.txt
+pySourceCredChart/static/extension.js
+pySourceCredChart/static/index.js
+pySourceCredChart/static/index.js.map
