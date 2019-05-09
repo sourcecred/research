@@ -313,11 +313,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			});
 	}
 	
-	function d3updateHalos(){
-		
-	}
-	
-	
 
 module.exports = {
 	sourceCredChartModel: sourceCredChartModel,
