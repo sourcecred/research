@@ -10053,7 +10053,7 @@ function transform(node) {
 __webpack_require__.p = document.querySelector('body').getAttribute('data-base-url') + 'nbextensions/pySourceCredChart/';
 
 module.exports = __webpack_require__(180);
-module.exports['version'] = __webpack_require__(524).version;
+module.exports['version'] = __webpack_require__(519).version;
 
 /***/ }),
 /* 180 */
@@ -10069,10 +10069,6 @@ var d3 = _interopRequireWildcard(_d);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var widgets = __webpack_require__(518);
-__webpack_require__(519);
-
-/// set constants
-var MAX_SIZE_PIXELS = 200;
 
 var sourceCredChartModel = widgets.DOMWidgetModel.extend({
 	defaults: _.extend(_.result(undefined, 'widgets.DOMWidgetModel.prototype.defaults'), {
@@ -10084,14 +10080,10 @@ var sourceCredChartModel = widgets.DOMWidgetModel.extend({
 });
 
 var sourceCredChartView = widgets.DOMWidgetView.extend({
-
 	render: function render() {
 		var that = this;
 		/// set up chart space without data
 		this.chartContainer = d3.select(this.el);
-
-		// set up scaffolding
-		d3setScaffolding(that);
 
 		var message = new Promise(function (resolve, reject) {
 			resolve(that.model.get('_model_msg'));
@@ -10102,6 +10094,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		});
 
 		this.model.on('change:_model_msg', this.message_changed, this);
+		this.model.on('change:_model_data', this.data_changed, this);
 	},
 
 	message_changed: function message_changed() {
@@ -10109,41 +10102,84 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		this.draw(this.el.msg[0]);
 	},
 
+	data_changed: function data_changed() {
+		this.el.data = this.model.get('_model_data');
+		this.update(this.el.data);
+	},
 	draw: function draw(opts) {
-		//preserve context for closures
-		var that = this;
-
-		// parse opts object sent as message
+		console.log(opts);
 		this.data = opts.data;
 		this.scores = opts.scores;
 		this.mapping = opts.mapping;
 		this.options = opts.options;
+		console.log(this.data);
+		console.log(this.mapping);
+
+		//preserve context for closures
+		var that = this;
+
+		// define dimensions
+		this.width = 800;
+		this.height = 600;
+
+		// set up parent element and SVG
+		this.chartContainer.innerHTML = '';
+		this.svg = this.chartContainer.append('svg');
+		this.svg.attr('width', this.width);
+		this.svg.attr('height', this.height);
+		this.chart = this.svg.append("g").attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ")");
+
+		// set up svg defs
+		this.chart.append("defs").append("marker").attr("id", "arrow").attr("viewBox", "0 -3 10 10").attr("refX", 18).attr("refY", 0).attr("markerWidth", 5).attr("markerHeight", 5).attr("orient", "auto").append("svg:path").attr("d", "M 0,-5 L 10 ,0 L 0,5");
+
+		//chart elements        
+		this.edge = this.chart.append("g");
+		this.node = this.chart.append("g");
+		this.tooltip = d3.select(this.element).append("div").attr("class", "toolTip").style('display', 'none').style('position', 'absolute').style('min-width', '50px').style('height', 'auto').style('background', 'none repeat scroll 0 0 #ffffff');
 
 		//initialize simulation
 		///define variables from data for simulation only
 		///data updates chart and restarts simulation later
-		this.links = this.data[this.mapping.edges];
+		var links = this.data[this.mapping.edges];
 		if (that.mapping.source) {
-			this.links.forEach(function (d) {
+			links.forEach(function (d) {
 				d.source = d[that.mapping.source];
 				d.target = d[that.mapping.target];
 			});
 		}
+		console.log(links);
 
-		this.nodes = this.data[this.mapping.nodes];
+		var nodes = this.data[this.mapping.nodes];
+		console.log(nodes);
 
 		/// define simulation object
-		this.simulation = _simulation(that, this.nodes, this.links);
+		this.simulation = d3.forceSimulation(nodes).force("charge", d3.forceManyBody().strength(-1)).force("link", d3.forceLink(links).distance(100)).force("collide", d3.forceCollide().radius(2)).force("x", d3.forceX()).force("y", d3.forceY()).alphaTarget(1).on("tick", ticked);
 
+		function ticked() {
+			that.node.selectAll('.node').attr("cx", function (d) {
+				return d.x;
+			}).attr("cy", function (d) {
+				return d.y;
+			});
+
+			//TODO: fix arrow marker by moving back based on the node radius
+			that.edge.selectAll('.edge').attr("x1", function (d) {
+				return d.source.x;
+			}).attr("y1", function (d) {
+				return d.source.y;
+			}).attr("x2", function (d) {
+				return d.target.x;
+			}).attr("y2", function (d) {
+				return d.target.y;
+			});
+		}
+
+		//this.setColorScales();
+		this.nodeColor = d3.scaleOrdinal(d3.schemeCategory10);
+		this.edgeColor = d3.scaleOrdinal(d3.schemeCategory10);
 		// update chart
 		// this.addZoom();
-		d3updateNodes(that, this.nodes);
-		d3updateEdges(that, this.links);
-
-		// Update and restart the simulation.
-		that.simulation.nodes(this.nodes);
-		that.simulation.force("link").links(this.links);
-		that.simulation.alpha(1).restart();
+		this.update(this.data);
 
 		function timeIt() {
 			setTimeout(function () {
@@ -10153,187 +10189,94 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			}, 20000);
 		}
 		timeIt();
+	},
+	update: function update(newData) {
+		console.log(newData);
+		//preserve context for functions
+		var that = this;
+
+		var data = newData.length == 1 ? newData[0] : newData;
+
+		//define variables from data
+		var links = data[this.mapping.edges];
+		if (that.mapping.source) {
+			links.forEach(function (d) {
+				d.source = d[that.mapping.source];
+				d.target = d[that.mapping.target];
+			});
+		}
+
+		var nodes = data[this.mapping.nodes];
+
+		// restart simulation with new data
+		// node data join
+		// TODO: add drag behavior
+		var node = that.node.selectAll(".node").data(nodes);
+
+		// node exit	
+		node.exit().transition().ease(d3.easeQuad).duration(1000).remove();
+
+		//node enter
+		var newNode = node.enter().append('circle').attr('class', 'node').on('mouseover', mouseOver).on('mouseout', mouseOff);
+
+		// node update	
+		node.merge(newNode).transition().ease(d3.easeQuad).duration(1000).attr('fill', function (d) {
+			if (that.mapping.nodeGroup) {
+				return that.nodeColor(d[that.mapping.nodeGroup]);
+			} else {
+				return 'steelblue';
+			}
+		}).attr('r', function (d) {
+			if (that.mapping.nodeSize) {
+				return Math.min(75, Math.max(1, that.scores[d.index] * 1000));
+			} else {
+				return 5;
+			}
+		});
+
+		// edge data join
+		var edge = that.edge.selectAll('.edge').data(links);
+
+		// edge exit
+		edge.exit().remove();
+
+		// edge enter
+		var newEdge = edge.enter().append('line').attr('class', 'edge');
+
+		edge.merge(newEdge).transition().ease(d3.easeQuad).duration(1000).attr("marker-end", "url(#arrow)").attr('stroke-width', function (d) {
+			if (that.mapping.edgeSize) {
+				return d[that.mapping.edgeSize];
+			} else {
+				return 0.25;
+			}
+		}).attr('stroke', function (d) {
+			if (that.mapping.edgeGroup) {
+				return that.edgeColor(d[that.mapping.edgeGroup]);
+			} else {
+				return '#000';
+			}
+		});
+
+		// Update and restart the simulation.
+		that.simulation.nodes(nodes);
+		that.simulation.force("link").links(links);
+		that.simulation.alpha(1).restart();
+
+		function mouseOver() {
+			var data = d3.select(this).data()[0];
+			var textDisplay = data[that.mapping.nodeLabel] + '-' + that.scores[data.index].toFixed(3);
+
+			that.tooltip.style("left", d3.event.pageX - 10 + 'px').style("top", d3.event.pageY - 30 + 'px').style("display", "inline-block").html(function () {
+				return textDisplay;
+			});
+		}
+
+		function mouseOff() {
+			that.tooltip.style("display", "none");
+		}
 	}
 
 });
-
-/// d3 based calculations; should work for both this library and React+d3 UI	
-function _radius(that, d) {
-	if (that.scores) {
-		// Use the square of the score as radius, so area will be proportional to score (if score available).
-		// For the Python implementation, the scores are separate from the node so we use the node index to
-		// find the score.
-		var _maxScore = 100;
-		var score = that.scores[d.index];
-		var r = Math.sqrt(score / _maxScore * MAX_SIZE_PIXELS) + 3;
-
-		if (!isFinite(r)) {
-			return 0;
-		}
-		return r;
-	} else {
-		return 5;
-	}
-}
-
-function _simulation(that, nodes, links) {
-
-	// set link force
-	var linkForce = d3.forceLink(links)
-	//.id((d) => d.address)
-	.distance(120);
-
-	// set charge 
-	var nodeCharge = d3.forceManyBody().strength(-380);
-
-	// set node collide
-	var nodeCollide = d3.forceCollide().radius(function (d) {
-		return _radius(that, d);
-	});
-
-	//set simulation
-	var simulation = d3.forceSimulation(nodes).force("charge", nodeCharge).force("link", linkForce).force("collide", nodeCollide).force("x", d3.forceX()).force("y", d3.forceY()).alphaTarget(0.02).alphaMin(0.01).on("tick", d3ticked);
-
-	function d3ticked() {
-		that.node.selectAll('.node').attr("cx", function (d) {
-			return d.x;
-		}).attr("cy", function (d) {
-			return d.y;
-		});
-
-		//TODO: fix arrow marker by moving back based on the node radius
-		that.edge.selectAll('.edge').attr("x1", function (d) {
-			return d.source.x;
-		}).attr("y1", function (d) {
-			return d.source.y;
-		}).attr("x2", function (d) {
-			return d.target.x;
-		}).attr("y2", function (d) {
-			return d.target.y;
-		});
-	}
-
-	return simulation;
-}
-
-/// d3 based DOM functions; trying to mimic React Components
-function d3setScaffolding(that) {
-
-	// define dimensions
-	that.width = 800;
-	that.height = 600;
-
-	// set up parent element and SVG
-	that.chartContainer.innerHTML = '';
-	that.svg = that.chartContainer.append('svg');
-	that.svg.attr('width', that.width);
-	that.svg.attr('height', that.height);
-	that.chart = that.svg.append("g").attr("transform", "translate(" + that.width / 2 + "," + that.height / 2 + ")");
-
-	// set up svg defs
-	that.chart.append("defs").append("marker").attr("id", "arrow").attr("viewBox", "0 -3 10 10").attr("refX", 18).attr("refY", 0).attr("markerWidth", 5).attr("markerHeight", 5).attr("orient", "auto").append("svg:path").attr("d", "M 0,-5 L 10 ,0 L 0,5");
-
-	//chart elements    
-	that.edge = that.chart.append("g");
-	that.node = that.chart.append("g");
-
-	that.tooltip = that.chartContainer.append("div").attr("class", "toolTip").style('display', 'none').style('position', 'absolute').style('min-width', '50px').style('height', 'auto').style('background', 'none repeat scroll 0 0 #ffffff');
-}
-
-function d3updateNodes(that, nodes) {
-	// node data join
-	// TODO: add drag behavior
-
-	var nodeColor = d3.scaleOrdinal(d3.schemeCategory10);
-	var node = that.node.selectAll(".node").data(nodes);
-
-	// node exit	
-	node.exit().transition().ease(d3.easeQuad).duration(1000).remove();
-
-	//node enter
-	var newNode = node.enter().append('circle').attr('class', 'node').on('mouseover', mouseOver).on('mouseout', mouseOff).on('click', clickHalo);
-
-	// node update	
-	node.merge(newNode).transition().ease(d3.easeQuad).duration(1000).attr('fill', function (d) {
-		if (that.mapping.nodeGroup) {
-			return nodeColor(d[that.mapping.nodeGroup]);
-		} else {
-			return 'steelblue';
-		}
-	}).attr('r', function (d) {
-		if (that.mapping.nodeSize) {
-			return Math.min(75, Math.max(1, that.scores[d.index] * 1000));
-		} else {
-			return 5;
-		}
-	});
-
-	function mouseOver() {
-		var data = d3.select(this).data()[0];
-		var textDisplay = data['index'] + '<br>' + data[that.mapping.nodeLabel] + '<br>' + data[3] + '<br>' + data[4];
-		var nodeColor = d3.select(this).style('fill');
-		console.log(data);
-
-		that.tooltip.style("left", d3.event.pageX - 250 + 'px').style("top", 0 + 'px').style("display", "inline").style("background", nodeColor).html(function () {
-			return textDisplay;
-		});
-	}
-
-	function mouseOff() {
-		that.tooltip.style("display", "none");
-	}
-
-	function clickHalo() {
-		//reset classes
-		that.svg.selectAll('circle').attr('class', 'node');
-		that.svg.selectAll('line').attr('class', 'edge');
-
-		//get node index
-		var nodeIdx = d3.select(this).data()[0].index;
-		console.log(nodeIdx);
-
-		//change node class to halo
-		d3.select(this).attr('class', 'halo');
-
-		//change connected links to class halo
-		console.log(that.svg.selectAll(".edge").data()[0]);
-		var links = that.svg.selectAll(".edge").filter(function (d) {
-			console.log(d);
-			return d.dstIndex == nodeIdx | d.srcIndex == nodeIdx;
-		});
-		links.attr('class', 'halo');
-		console.log(links);
-	}
-}
-
-function d3updateEdges(that, links) {
-
-	var edgeColor = d3.scaleOrdinal(d3.schemeCategory10);
-	// edge data join
-	var edge = that.edge.selectAll('.edge').data(links);
-
-	// edge exit
-	edge.exit().remove();
-
-	// edge enter
-	var newEdge = edge.enter().append('line').attr('class', 'edge');
-
-	edge.merge(newEdge).transition().ease(d3.easeQuad).duration(1000).attr("marker-end", "url(#arrow)").attr('stroke-width', function (d) {
-		if (that.mapping.edgeSize) {
-			return d[that.mapping.edgeSize];
-		} else {
-			return 0.25;
-		}
-	}).attr('stroke', function (d) {
-		if (that.mapping.edgeGroup) {
-			return edgeColor(d[that.mapping.edgeGroup]);
-		} else {
-			return '#000';
-		}
-	});
-}
-
-function d3updateHalos() {}
 
 module.exports = {
 	sourceCredChartModel: sourceCredChartModel,
@@ -25236,587 +25179,6 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_518__;
 
 /***/ }),
 /* 519 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(520);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(522)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../node_modules/css-loader/index.js!./pySourceCredChart.css", function() {
-			var newContent = require("!!../node_modules/css-loader/index.js!./pySourceCredChart.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 520 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(521)(false);
-// imports
-
-
-// module
-exports.push([module.i, "circle.halo{\r\n\tfill: #00FF00;\r\n\tstroke: #00FF00;\r\n\tstroke-width: \"3\";\t\r\n}\r\nline.halo{\r\n\tfill: #00FF00;\r\n\tstroke: #00FF00;\r\n\tstroke-width: \"3\";\r\n}\r\n\r\n.toolTip{\r\n    border: \"2px solid\";\r\n    borderRadius: \"6px\";\r\n    maxWidth: \"300px\";\r\n\tcolor: white;\r\n\tfill: white;\r\n  }\r\n  \r\ntext.toolTip{\r\n\tcolor: white;\r\n\tfill: white;\r\n}", ""]);
-
-// exports
-
-
-/***/ }),
-/* 521 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 522 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-
-var stylesInDom = {};
-
-var	memoize = function (fn) {
-	var memo;
-
-	return function () {
-		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-		return memo;
-	};
-};
-
-var isOldIE = memoize(function () {
-	// Test for IE <= 9 as proposed by Browserhacks
-	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
-	// Tests for existence of standard globals is to allow style-loader
-	// to operate correctly into non-standard environments
-	// @see https://github.com/webpack-contrib/style-loader/issues/177
-	return window && document && document.all && !window.atob;
-});
-
-var getElement = (function (fn) {
-	var memo = {};
-
-	return function(selector) {
-		if (typeof memo[selector] === "undefined") {
-			memo[selector] = fn.call(this, selector);
-		}
-
-		return memo[selector]
-	};
-})(function (target) {
-	return document.querySelector(target)
-});
-
-var singleton = null;
-var	singletonCounter = 0;
-var	stylesInsertedAtTop = [];
-
-var	fixUrls = __webpack_require__(523);
-
-module.exports = function(list, options) {
-	if (typeof DEBUG !== "undefined" && DEBUG) {
-		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-	}
-
-	options = options || {};
-
-	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
-
-	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-	// tags it will allow on a page
-	if (!options.singleton) options.singleton = isOldIE();
-
-	// By default, add <style> tags to the <head> element
-	if (!options.insertInto) options.insertInto = "head";
-
-	// By default, add <style> tags to the bottom of the target
-	if (!options.insertAt) options.insertAt = "bottom";
-
-	var styles = listToStyles(list, options);
-
-	addStylesToDom(styles, options);
-
-	return function update (newList) {
-		var mayRemove = [];
-
-		for (var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-
-			domStyle.refs--;
-			mayRemove.push(domStyle);
-		}
-
-		if(newList) {
-			var newStyles = listToStyles(newList, options);
-			addStylesToDom(newStyles, options);
-		}
-
-		for (var i = 0; i < mayRemove.length; i++) {
-			var domStyle = mayRemove[i];
-
-			if(domStyle.refs === 0) {
-				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
-
-				delete stylesInDom[domStyle.id];
-			}
-		}
-	};
-};
-
-function addStylesToDom (styles, options) {
-	for (var i = 0; i < styles.length; i++) {
-		var item = styles[i];
-		var domStyle = stylesInDom[item.id];
-
-		if(domStyle) {
-			domStyle.refs++;
-
-			for(var j = 0; j < domStyle.parts.length; j++) {
-				domStyle.parts[j](item.parts[j]);
-			}
-
-			for(; j < item.parts.length; j++) {
-				domStyle.parts.push(addStyle(item.parts[j], options));
-			}
-		} else {
-			var parts = [];
-
-			for(var j = 0; j < item.parts.length; j++) {
-				parts.push(addStyle(item.parts[j], options));
-			}
-
-			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-		}
-	}
-}
-
-function listToStyles (list, options) {
-	var styles = [];
-	var newStyles = {};
-
-	for (var i = 0; i < list.length; i++) {
-		var item = list[i];
-		var id = options.base ? item[0] + options.base : item[0];
-		var css = item[1];
-		var media = item[2];
-		var sourceMap = item[3];
-		var part = {css: css, media: media, sourceMap: sourceMap};
-
-		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
-		else newStyles[id].parts.push(part);
-	}
-
-	return styles;
-}
-
-function insertStyleElement (options, style) {
-	var target = getElement(options.insertInto)
-
-	if (!target) {
-		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
-	}
-
-	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
-
-	if (options.insertAt === "top") {
-		if (!lastStyleElementInsertedAtTop) {
-			target.insertBefore(style, target.firstChild);
-		} else if (lastStyleElementInsertedAtTop.nextSibling) {
-			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
-		} else {
-			target.appendChild(style);
-		}
-		stylesInsertedAtTop.push(style);
-	} else if (options.insertAt === "bottom") {
-		target.appendChild(style);
-	} else {
-		throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
-	}
-}
-
-function removeStyleElement (style) {
-	if (style.parentNode === null) return false;
-	style.parentNode.removeChild(style);
-
-	var idx = stylesInsertedAtTop.indexOf(style);
-	if(idx >= 0) {
-		stylesInsertedAtTop.splice(idx, 1);
-	}
-}
-
-function createStyleElement (options) {
-	var style = document.createElement("style");
-
-	options.attrs.type = "text/css";
-
-	addAttrs(style, options.attrs);
-	insertStyleElement(options, style);
-
-	return style;
-}
-
-function createLinkElement (options) {
-	var link = document.createElement("link");
-
-	options.attrs.type = "text/css";
-	options.attrs.rel = "stylesheet";
-
-	addAttrs(link, options.attrs);
-	insertStyleElement(options, link);
-
-	return link;
-}
-
-function addAttrs (el, attrs) {
-	Object.keys(attrs).forEach(function (key) {
-		el.setAttribute(key, attrs[key]);
-	});
-}
-
-function addStyle (obj, options) {
-	var style, update, remove, result;
-
-	// If a transform function was defined, run it on the css
-	if (options.transform && obj.css) {
-	    result = options.transform(obj.css);
-
-	    if (result) {
-	    	// If transform returns a value, use that instead of the original css.
-	    	// This allows running runtime transformations on the css.
-	    	obj.css = result;
-	    } else {
-	    	// If the transform function returns a falsy value, don't add this css.
-	    	// This allows conditional loading of css
-	    	return function() {
-	    		// noop
-	    	};
-	    }
-	}
-
-	if (options.singleton) {
-		var styleIndex = singletonCounter++;
-
-		style = singleton || (singleton = createStyleElement(options));
-
-		update = applyToSingletonTag.bind(null, style, styleIndex, false);
-		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
-
-	} else if (
-		obj.sourceMap &&
-		typeof URL === "function" &&
-		typeof URL.createObjectURL === "function" &&
-		typeof URL.revokeObjectURL === "function" &&
-		typeof Blob === "function" &&
-		typeof btoa === "function"
-	) {
-		style = createLinkElement(options);
-		update = updateLink.bind(null, style, options);
-		remove = function () {
-			removeStyleElement(style);
-
-			if(style.href) URL.revokeObjectURL(style.href);
-		};
-	} else {
-		style = createStyleElement(options);
-		update = applyToTag.bind(null, style);
-		remove = function () {
-			removeStyleElement(style);
-		};
-	}
-
-	update(obj);
-
-	return function updateStyle (newObj) {
-		if (newObj) {
-			if (
-				newObj.css === obj.css &&
-				newObj.media === obj.media &&
-				newObj.sourceMap === obj.sourceMap
-			) {
-				return;
-			}
-
-			update(obj = newObj);
-		} else {
-			remove();
-		}
-	};
-}
-
-var replaceText = (function () {
-	var textStore = [];
-
-	return function (index, replacement) {
-		textStore[index] = replacement;
-
-		return textStore.filter(Boolean).join('\n');
-	};
-})();
-
-function applyToSingletonTag (style, index, remove, obj) {
-	var css = remove ? "" : obj.css;
-
-	if (style.styleSheet) {
-		style.styleSheet.cssText = replaceText(index, css);
-	} else {
-		var cssNode = document.createTextNode(css);
-		var childNodes = style.childNodes;
-
-		if (childNodes[index]) style.removeChild(childNodes[index]);
-
-		if (childNodes.length) {
-			style.insertBefore(cssNode, childNodes[index]);
-		} else {
-			style.appendChild(cssNode);
-		}
-	}
-}
-
-function applyToTag (style, obj) {
-	var css = obj.css;
-	var media = obj.media;
-
-	if(media) {
-		style.setAttribute("media", media)
-	}
-
-	if(style.styleSheet) {
-		style.styleSheet.cssText = css;
-	} else {
-		while(style.firstChild) {
-			style.removeChild(style.firstChild);
-		}
-
-		style.appendChild(document.createTextNode(css));
-	}
-}
-
-function updateLink (link, options, obj) {
-	var css = obj.css;
-	var sourceMap = obj.sourceMap;
-
-	/*
-		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
-		and there is no publicPath defined then lets turn convertToAbsoluteUrls
-		on by default.  Otherwise default to the convertToAbsoluteUrls option
-		directly
-	*/
-	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
-
-	if (options.convertToAbsoluteUrls || autoFixUrls) {
-		css = fixUrls(css);
-	}
-
-	if (sourceMap) {
-		// http://stackoverflow.com/a/26603875
-		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-	}
-
-	var blob = new Blob([css], { type: "text/css" });
-
-	var oldSrc = link.href;
-
-	link.href = URL.createObjectURL(blob);
-
-	if(oldSrc) URL.revokeObjectURL(oldSrc);
-}
-
-
-/***/ }),
-/* 523 */
-/***/ (function(module, exports) {
-
-
-/**
- * When source maps are enabled, `style-loader` uses a link element with a data-uri to
- * embed the css on the page. This breaks all relative urls because now they are relative to a
- * bundle instead of the current page.
- *
- * One solution is to only use full urls, but that may be impossible.
- *
- * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
- *
- * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
- *
- */
-
-module.exports = function (css) {
-  // get current location
-  var location = typeof window !== "undefined" && window.location;
-
-  if (!location) {
-    throw new Error("fixUrls requires window.location");
-  }
-
-	// blank or null?
-	if (!css || typeof css !== "string") {
-	  return css;
-  }
-
-  var baseUrl = location.protocol + "//" + location.host;
-  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
-
-	// convert each url(...)
-	/*
-	This regular expression is just a way to recursively match brackets within
-	a string.
-
-	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
-	   (  = Start a capturing group
-	     (?:  = Start a non-capturing group
-	         [^)(]  = Match anything that isn't a parentheses
-	         |  = OR
-	         \(  = Match a start parentheses
-	             (?:  = Start another non-capturing groups
-	                 [^)(]+  = Match anything that isn't a parentheses
-	                 |  = OR
-	                 \(  = Match a start parentheses
-	                     [^)(]*  = Match anything that isn't a parentheses
-	                 \)  = Match a end parentheses
-	             )  = End Group
-              *\) = Match anything and then a close parens
-          )  = Close non-capturing group
-          *  = Match anything
-       )  = Close capturing group
-	 \)  = Match a close parens
-
-	 /gi  = Get all matches, not the first.  Be case insensitive.
-	 */
-	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
-		// strip quotes (if they exist)
-		var unquotedOrigUrl = origUrl
-			.trim()
-			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
-			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
-
-		// already a full url? no change
-		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
-		  return fullMatch;
-		}
-
-		// convert the url to a full url
-		var newUrl;
-
-		if (unquotedOrigUrl.indexOf("//") === 0) {
-		  	//TODO: should we add protocol?
-			newUrl = unquotedOrigUrl;
-		} else if (unquotedOrigUrl.indexOf("/") === 0) {
-			// path should be relative to the base url
-			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
-		} else {
-			// path should be relative to current directory
-			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
-		}
-
-		// send back the fixed url(...)
-		return "url(" + JSON.stringify(newUrl) + ")";
-	});
-
-	// send back the fixed css
-	return fixedCss;
-};
-
-
-/***/ }),
-/* 524 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"pySourceCredChart","version":"0.1.0","description":"A python library for Source Cred Charts","author":"Ryan Morton","main":"lib/index.js","repository":{"type":"git","url":"https://github.com//pySourceCredChart.git"},"keywords":["jupyter","widgets","ipython","ipywidgets","jupyterlab-extension"],"files":["lib/**/*.js","dist/*.js"],"scripts":{"clean":"rimraf dist/","prepublish":"webpack","test":"echo \"Error: no test specified\" && exit 1"},"devDependencies":{"babel-cli":"^6.24.1","babel-core":"^6.25.0","babel-loader":"^7.1.1","babel-preset-es2015":"^6.24.1","babel-preset-stage-0":"^6.24.1","style-loader":"^0.18.2","css-loader":"^0.28.4","json-loader":"^0.5.4","webpack":"^3.5.5","rimraf":"^2.6.1"},"dependencies":{"@jupyter-widgets/base":"^1.0.0","d3":"^5.9.2","lodash":"^4.17.4"},"jupyterlab":{"extension":"lib/labplugin"}}
