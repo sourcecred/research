@@ -18,14 +18,13 @@ var sourceCredChartModel = widgets.DOMWidgetModel.extend({
 var sourceCredChartView = widgets.DOMWidgetView.extend({
 	
 	render: function(){
-		var that = this;
+		const that = this;
 		/// set up chart space without data
 		this.chartContainer = d3.select(this.el);
 		
-		// set up scaffolding
-		d3setScaffolding(that);
+		setScaffolding(that);
 		
-		var message = new Promise(function(resolve, reject){
+		const message = new Promise(function(resolve, reject){
 			resolve(that.model.get('_model_msg'))
 		});
 		
@@ -45,7 +44,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	
 	draw: function(opts){
 		//preserve context for closures
-		var that = this;
+		const that = this;
 		
 		// parse opts object sent as message
 		this.data = opts.data;
@@ -53,9 +52,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		this.mapping = opts.mapping;
 		this.options = opts.options;
 		
-		//initialize simulation
-		///define variables from data for simulation only
-		///data updates chart and restarts simulation later
 		this.links = this.data[this.mapping.edges];
 		if(that.mapping.source){
 			this.links.forEach(function(d){
@@ -66,28 +62,15 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
     
 		this.nodes = this.data[this.mapping.nodes];
 		
-		/// define simulation object
 		this.simulation = _simulation(that, this.nodes, this.links);
     
-		// update chart
-		// this.addZoom();
-		d3updateNodes(that, this.nodes);
-		d3updateEdges(that, this.links);		
+		updateNodes(that, this.nodes);
+		updateEdges(that, this.links);		
 		
-				
-		// Update and restart the simulation.
+		//restart simulation
 		that.simulation.nodes(this.nodes);
 		that.simulation.force("link").links(this.links);
 		that.simulation.alpha(1).restart();
-		
-		function timeIt(){
-		  setTimeout(function(){
-			console.log("call stop");
-			that.simulation.alpha(0).restart();
-			that.simulation.stop();
-			}, 20000);
-		}
-		timeIt();
 	}
 	
 });
@@ -98,17 +81,17 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			// Use the square of the score as radius, so area will be proportional to score (if score available).
 			// For the Python implementation, the scores are separate from the node so we use the node index to
 			// find the score.
-			const _maxScore = 100;
+			const _maxScore = d3.max(that.scores);
 			const score = that.scores[d.index];
 			const r = Math.sqrt((score / _maxScore) * MAX_SIZE_PIXELS) + 3;
 			
 			if (!isFinite(r)) {
-			  return 0;
-			}
-			return r;
-		} else {
-			return 5
-			} 
+				return 0;
+				}
+				return r;
+				} else {
+					return 5
+					} 
 		
 		}
 	
@@ -124,7 +107,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		
 		// set node collide
 		const nodeCollide = d3.forceCollide().radius((d) => {
-			return _radius(that,d);
+			 _radius(that,d);
 		});
 			
 		//set simulation
@@ -136,24 +119,28 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		    .force("y", d3.forceY())
 		    .alphaTarget(0.02)
 		    .alphaMin(0.01)
-		    .on("tick", d3ticked);
+		    .on("tick", ticked);
 			
-		function d3ticked(){
-			that.node.selectAll('.node').attr("cx", function(d) { return d.x; })
-					.attr("cy", function(d) { return d.y; })
+		function ticked(){
+			that.node
+				.selectAll('.node')
+				.attr("cx", (d) =>  d.x )
+				.attr("cy", (d) => d.y )
 				
 			//TODO: fix arrow marker by moving back based on the node radius
-			that.edge.selectAll('.edge').attr("x1", function(d) { return d.source.x; })
-				.attr("y1", function(d) { return d.source.y; })
-				.attr("x2", function(d) { return d.target.x; })
-				.attr("y2", function(d) { return d.target.y; });
+			that.edge
+				.selectAll('.edge')
+				.attr("x1", (d) => d.source.x )
+				.attr("y1", (d) => d.source.y )
+				.attr("x2", (d) => d.target.x )
+				.attr("y2", (d) => d.target.y );
 			}
 			
 		return simulation
 	}
 	
 	/// d3 based DOM functions; trying to mimic React Components
-	function d3setScaffolding(that){
+	function setScaffolding(that){
 		
 		// define dimensions
 		that.width = 800;
@@ -193,12 +180,12 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.style('background', 'none repeat scroll 0 0 #ffffff');
 	}
 	
-	function d3updateNodes(that, nodes){
+	function updateNodes(that, nodes){
 		// node data join
 		// TODO: add drag behavior
 		
-		var nodeColor = d3.scaleOrdinal(d3.schemeCategory10);
-		var node = that.node.selectAll(".node").data(nodes);
+		const nodeColor = d3.scaleOrdinal(d3.schemeCategory10);
+		const node = that.node.selectAll(".node").data(nodes);
 
 		// node exit	
 		node.exit()
@@ -208,7 +195,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.remove();
 			
 		//node enter
-		var newNode = node.enter()
+		const newNode = node.enter()
 			.append('circle')
 			.attr('class', 'node')
 			.on('mouseover', mouseOver)
@@ -220,35 +207,20 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.transition()
 			.ease(d3.easeQuad)
 			.duration(1000)
-			.attr('fill', function(d){
-				if(that.mapping.nodeGroup){
-					return nodeColor(d[that.mapping.nodeGroup]);
-				} else {
-					return 'steelblue';
-				}
-			})
-			.attr('r', function(d){
-				if(that.mapping.nodeSize){
-					return Math.min(75,Math.max(1, that.scores[d.index] * 1000));
-				} else {
-					return 5;
-				}
-			});
+			.attr('fill', (d) => that.mapping.nodeGroup ? nodeColor(d[that.mapping.nodeGroup]) : 'steelblue')
+			.attr('r', (d) => _radius(that, d));
 			
 		function mouseOver(){
-			var data = d3.select(this).data()[0];
-			var textDisplay = data['index'] + '<br>' + data[that.mapping.nodeLabel] + '<br>' + data[3] + '<br>' + data[4] ;
-			var nodeColor = d3.select(this).style('fill');
-			console.log(data);
+			const data = d3.select(this).data()[0];
+			const textDisplay = data['index'] + '<br>' + data[that.mapping.nodeLabel] + '<br>' + data[3] + '<br>' + data[4] ;
+			const nodeColor = d3.select(this).style('fill');
 			
 			that.tooltip
 			  .style("left", (d3.event.pageX - 250) + 'px')
 			  .style("top", 0 + 'px')
 			  .style("display", "inline")
 			  .style("background", nodeColor)
-			  .html(function(){
-				  return textDisplay;
-			  });
+			  .html(() => textDisplay );
 		}
 		
 		function mouseOff(){
@@ -261,34 +233,29 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			that.svg.selectAll('line').attr('class', 'edge');
 			
 			//get node index
-			var nodeIdx = d3.select(this).data()[0].index;
+			const nodeIdx = d3.select(this).data()[0].index;
 			console.log(nodeIdx);
 			
 			//change node class to halo
 			d3.select(this).attr('class', 'halo');
 			
 			//change connected links to class halo
-			console.log(that.svg.selectAll(".edge").data()[0]);
-			var links = that.svg.selectAll(".edge").filter(function(d){
-				console.log(d);
-                return (d.dstIndex == nodeIdx | d.srcIndex == nodeIdx);
-              });
+			const links = that.svg.selectAll(".edge").filter((d) => (d.dstIndex == nodeIdx | d.srcIndex == nodeIdx));
 			links.attr('class', 'halo');
-			console.log(links);
 		}
 	}
 	
-	function d3updateEdges(that, links){
+	function updateEdges(that, links){
 		
-		var edgeColor = d3.scaleOrdinal(d3.schemeCategory10);
+		const edgeColor = d3.scaleOrdinal(d3.schemeCategory10);
 		// edge data join
-		var edge = that.edge.selectAll('.edge').data(links);
+		const edge = that.edge.selectAll('.edge').data(links);
 		
 		// edge exit
 		edge.exit().remove();
 		
 		// edge enter
-		var newEdge = edge.enter()
+		const newEdge = edge.enter()
 			.append('line')
 			.attr('class', 'edge');
 		
@@ -297,20 +264,8 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.ease(d3.easeQuad)
 			.duration(1000)
 			.attr("marker-end", "url(#arrow)")
-			.attr('stroke-width', function(d){
-				if(that.mapping.edgeSize){
-					return d[that.mapping.edgeSize];
-				} else {
-					return 0.25;
-				}
-			})
-			.attr('stroke', function(d){
-				if(that.mapping.edgeGroup){
-					return edgeColor(d[that.mapping.edgeGroup]);
-				} else {
-					return '#000';
-				}
-			});
+			.attr('stroke-width', (d) => that.mapping.edgeSize ? d[that.mapping.edgeSize] : 0.25)
+			.attr('stroke', (d) => that.mapping.edgeGroup ? edgeColor(d[that.mapping.edgeGroup]) : '#000' );
 	}
 	
 
