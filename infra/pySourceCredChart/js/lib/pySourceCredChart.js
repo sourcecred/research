@@ -19,7 +19,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	
 	render: function(){
 		const that = this;
-		/// set up chart space without data
+		
 		this.chartContainer = d3.select(this.el);
 		
 		setScaffolding(that);
@@ -43,10 +43,8 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	},
 	
 	draw: function(opts){
-		//preserve context for closures
 		const that = this;
-		
-		// parse opts object sent as message
+
 		this.data = opts.data;
 		this.scores = opts.scores;
 		this.mapping = opts.mapping;
@@ -67,7 +65,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		updateNodes(that, this.nodes);
 		updateEdges(that, this.links);		
 		
-		//restart simulation
 		that.simulation.nodes(this.nodes);
 		that.simulation.force("link").links(this.links);
 		that.simulation.alpha(1).restart();
@@ -97,20 +94,16 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	
 	function _simulation(that, nodes, links){
 		
-		// set link force
 		const linkForce = d3.forceLink(links)
 			//.id((d) => d.address)
 			.distance(120);
 			
-		// set charge 
 		const nodeCharge = d3.forceManyBody().strength(-380);
 		
-		// set node collide
 		const nodeCollide = d3.forceCollide().radius((d) => {
 			 _radius(that,d);
 		});
 			
-		//set simulation
 		 const simulation = d3.forceSimulation(nodes)
 			.force("charge", nodeCharge)
 			.force("link", linkForce)
@@ -142,11 +135,10 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	/// d3 based DOM functions; trying to mimic React Components
 	function setScaffolding(that){
 		
-		// define dimensions
+		//TODO: find a better way to assert width/height in Jupyter Notebook
 		that.width = 800;
 		that.height = 600;
 		
-		// set up parent element and SVG
 		that.chartContainer.innerHTML = '';
 		that.svg = that.chartContainer.append('svg');
 		that.svg.attr('width', that.width);
@@ -155,7 +147,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.append("g")
 			.attr("transform", "translate(" + that.width / 2 + "," + that.height / 2 + ")")
 			
-		// set up svg defs
 		that.chart.append("defs").append("marker")
 				.attr("id", "arrow")
 				.attr("viewBox", "0 -3 10 10")
@@ -167,7 +158,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 				.append("svg:path")
 				.attr("d", "M 0,-5 L 10 ,0 L 0,5");   
 		
-		//chart elements    
 		that.edge = that.chart.append("g");
 		that.node = that.chart.append("g");
 		
@@ -181,20 +171,16 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	}
 	
 	function updateNodes(that, nodes){
-		// node data join
-		// TODO: add drag behavior
 		
 		const nodeColor = d3.scaleOrdinal(d3.schemeCategory10);
 		const node = that.node.selectAll(".node").data(nodes);
-
-		// node exit	
+	
 		node.exit()
 			.transition()
 			.ease(d3.easeQuad)
 			.duration(1000)
 			.remove();
 			
-		//node enter
 		const newNode = node.enter()
 			.append('circle')
 			.attr('class', 'node')
@@ -202,7 +188,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.on('mouseout', mouseOff)
 			.on('click', clickHalo);
        
-		// node update	
 		node.merge(newNode)
 			.transition()
 			.ease(d3.easeQuad)
@@ -228,18 +213,15 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 		}
 		
 		function clickHalo(){
-			//reset classes
+
 			that.svg.selectAll('circle').attr('class', 'node');
 			that.svg.selectAll('line').attr('class', 'edge');
 			
-			//get node index
 			const nodeIdx = d3.select(this).data()[0].index;
 			console.log(nodeIdx);
 			
-			//change node class to halo
 			d3.select(this).attr('class', 'halo');
 			
-			//change connected links to class halo
 			const links = that.svg.selectAll(".edge").filter((d) => (d.dstIndex == nodeIdx | d.srcIndex == nodeIdx));
 			links.attr('class', 'halo');
 		}
@@ -248,13 +230,11 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	function updateEdges(that, links){
 		
 		const edgeColor = d3.scaleOrdinal(d3.schemeCategory10);
-		// edge data join
+
 		const edge = that.edge.selectAll('.edge').data(links);
 		
-		// edge exit
 		edge.exit().remove();
 		
-		// edge enter
 		const newEdge = edge.enter()
 			.append('line')
 			.attr('class', 'edge');
