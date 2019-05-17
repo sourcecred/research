@@ -45,6 +45,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 	draw: function(opts){
 		const that = this;
 
+
 		this.data = opts.data;
 		this.scores = opts.scores;
 		this.mapping = opts.mapping;
@@ -180,7 +181,7 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.ease(d3.easeQuad)
 			.duration(1000)
 			.remove();
-			
+
 		const newNode = node.enter()
 			.append('circle')
 			.attr('class', 'node')
@@ -248,7 +249,6 @@ var sourceCredChartView = widgets.DOMWidgetView.extend({
 			.attr('stroke', (d) => that.mapping.edgeGroup ? edgeColor(d[that.mapping.edgeGroup]) : '#000' );
 	}
 	
-
 module.exports = {
 	sourceCredChartModel: sourceCredChartModel,
 	sourceCredChartView: sourceCredChartView
