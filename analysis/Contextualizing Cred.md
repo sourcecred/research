@@ -11,6 +11,9 @@ see medium for distilled versions of the sections with computational experiments
 - https://medium.com/sourcecred/exploring-subjectivity-in-algorithms-5d8bf1c91714
 - https://medium.com/sourcecred/network-formation-games-7a74491abf0e
 
+Next steps
+- break this file out into individual files for each section so that its easier to work with/learn from
+
 ## Introduction
 
 **Replace intro with references to the Introductory Medium Article.**
