@@ -4,6 +4,13 @@ Contextualizing Cred
 *Michael Zargham*
 5/13/2019
 
+see hackmd for version with rendered math
+- https://hackmd.io/s/SkY7VvQnV
+
+see medium for distilled versions of the sections with computational experiments:
+- https://medium.com/sourcecred/exploring-subjectivity-in-algorithms-5d8bf1c91714
+- https://medium.com/sourcecred/network-formation-games-7a74491abf0e
+
 ## Introduction
 
 **Replace intro with references to the Introductory Medium Article.**
